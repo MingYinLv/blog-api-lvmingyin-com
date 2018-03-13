@@ -9,7 +9,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var mutation = graphql.NewObject(graphql.ObjectConfig{
+	Name: "RootMutation",
+	Fields: graphql.Fields{
+		"adminCreate": AdminCreateMutation,
+	},
+})
 
 var RootSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
-	Query: query,
+	Query:    query,
+	Mutation: mutation,
 })

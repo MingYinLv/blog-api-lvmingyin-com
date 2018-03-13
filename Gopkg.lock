@@ -2,32 +2,20 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/hashicorp/golang-lru"
-  packages = [".","simplelru"]
-  revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
-
-[[projects]]
-  name = "github.com/opentracing/opentracing-go"
-  packages = [".","log"]
-  revision = "1949ddbfd147afd4d964a9f00b24eb291e0e7c38"
-  version = "v1.0.2"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  revision = "ae89d30ce0c63142b652837da33d782e2b0a9b25"
-
-[[projects]]
-  name = "gopkg.in/nicksrandall/dataloader.v5"
+  name = "github.com/go-sql-driver/mysql"
   packages = ["."]
-  revision = "78139374585c29dcb97b8f33089ed11959e4be59"
-  version = "v5"
+  revision = "a0583e0143b1624142adab07e0e97fe106d99561"
+  version = "v1.3"
+
+[[projects]]
+  name = "github.com/graphql-go/graphql"
+  packages = [".","gqlerrors","language/ast","language/kinds","language/lexer","language/location","language/parser","language/printer","language/source","language/typeInfo","language/visitor"]
+  revision = "1e23489041ba90a66f317fe0deccb236a2fff3cb"
+  version = "v0.7.5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0723acc2d3c6728a3d488f957730b50cd80a7367b60d20dce87871565233e7c2"
+  inputs-digest = "61b64a3f1a83be756f0350c024b9ff0a1642c63b4698080a83557113f8414685"
   solver-name = "gps-cdcl"
   solver-version = 1

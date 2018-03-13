@@ -3,6 +3,7 @@ package schema
 import "github.com/graphql-go/graphql"
 
 type Information struct {
+	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Icon        string `json:"icon"`
@@ -19,6 +20,9 @@ type Information struct {
 var InformationType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Information",
 	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type: graphql.Int,
+		},
 		"title": &graphql.Field{
 			Type: graphql.String,
 		},

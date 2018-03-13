@@ -1,0 +1,9 @@
+
+ListenPort = 3000
+
+[Mysql]
+Host = "localhost"
+User = "root"
+Password = "root"
+DB = "blog"
+Port = 3306
