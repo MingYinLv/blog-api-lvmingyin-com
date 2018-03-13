@@ -19,7 +19,6 @@ type Mysql struct {
 func MySqlConn(config *Mysql) {
 	var err error
 	DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.User, config.Password, config.Host, config.Port, config.DB))
-	fmt.Printf(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.User, config.Password, config.Host, config.Port, config.DB))
 	if err != nil {
 		panic(err.Error())
 	}

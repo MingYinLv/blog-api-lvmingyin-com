@@ -8,6 +8,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"os"
+	"time"
+	"blog-api-lvmingyin-com/util"
 )
 
 func main() {
@@ -24,8 +26,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	var config config.Config
-	if _, err := toml.Decode(string(data), &config); err != nil {
+	var cfg config.Config
+	if _, err := toml.Decode(string(data), &cfg); err != nil {
 		fmt.Println("配置文件读取失败")
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(0)
@@ -33,12 +35,20 @@ func main() {
 
 	listenPort := int64(3333)
 
-	if config.ListenPort != 0 {
-		listenPort = config.ListenPort
+	if cfg.ListenPort != 0 {
+		listenPort = cfg.ListenPort
 	}
 
-	fmt.Println(config)
+	fs, err := os.Create(fmt.Sprintf("logs/error-%d.log", time.Now().Unix()))
+	defer fs.Close()
 
-	db.MySqlConn(&config.Mysql)
+	if err != nil {
+		fmt.Println("日志文件打开失败")
+		panic(err)
+	}
+	util.SetLog(fs)
+
+	db.MySqlConn(&cfg.Mysql)
+	defer db.Close()
 	router.Start(listenPort)
 }

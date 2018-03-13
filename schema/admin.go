@@ -3,7 +3,6 @@ package schema
 import (
 	"blog-api-lvmingyin-com/db"
 	"blog-api-lvmingyin-com/util"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
@@ -76,10 +75,11 @@ var AdminCreateMutation = &graphql.Field{
 	},
 }
 
-func AdminFindByUserName(username string) (Admin, error) {
+func FindAdminByUserName(username string) (Admin, error) {
 	stms, err := db.DB.Prepare("SELECT * FROM admin WHERE username = ?")
 	if err != nil {
-		panic(err.Error())
+		util.ErrorLog.Println(err)
+		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
 	}
 
 	row := stms.QueryRow(username)
@@ -88,20 +88,16 @@ func AdminFindByUserName(username string) (Admin, error) {
 	var userResult, pwdResult, salt string
 	err = row.Scan(&id, &userResult, &pwdResult, &salt)
 	if err != nil {
-		// 其他错误
-		return Admin{}, errors.New("用户不存在")
+		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
 	}
 	return Admin{id, userResult, pwdResult, salt}, nil
 }
 
 func AdminLogin(username, password string) (Admin, error) {
-	admin, err := AdminFindByUserName(username)
-	if err == sql.ErrNoRows {
-		// 根据用户名查不到数据
-		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
-	} else if err != nil {
+	admin, err := FindAdminByUserName(username)
+	if err != nil {
 		// 其他错误
-		return Admin{}, errors.New("用户名或密码错误")
+		return admin, err
 	}
 
 	if admin.Password == util.GetSha256Password(password, admin.Salt) {
@@ -116,21 +112,21 @@ func AdminLogin(username, password string) (Admin, error) {
 
 func AdminCreate(username, password string) (Admin, error) {
 
-	admin, err := AdminFindByUserName(username)
+	admin, err := FindAdminByUserName(username)
 	if err == nil && admin.ID > 0 {
 		return Admin{}, errors.New("该用户名已注册")
 	}
 
 	stms, err := db.DB.Prepare("INSERT INTO admin(username,password,salt) values(?,?,?)")
 	if err != nil {
-		panic(err.Error())
+		util.ErrorLog.Println(err)
 	}
 	salt := util.GetRandomString()
 	pwd := util.GetSha256Password(password, salt)
 	result, err := stms.Exec(username, pwd, salt)
 	stms.Close()
 	if err != nil {
-		panic(err.Error())
+		util.ErrorLog.Println(err)
 	}
 
 	id, err := result.LastInsertId()

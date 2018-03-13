@@ -6,6 +6,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootQuery",
 	Fields: graphql.Fields{
 		"login": AdminLoginQuery,
+		"getInformation": InformationQuery,
 	},
 })
 

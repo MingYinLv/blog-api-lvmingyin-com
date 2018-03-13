@@ -1,6 +1,12 @@
 package schema
 
-import "github.com/graphql-go/graphql"
+import (
+	"blog-api-lvmingyin-com/db"
+	"blog-api-lvmingyin-com/util"
+	"errors"
+	"fmt"
+	"github.com/graphql-go/graphql"
+)
 
 type Information struct {
 	ID          int64  `json:"id"`
@@ -58,3 +64,28 @@ var InformationType = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
+
+var InformationQuery = &graphql.Field{
+	Type: InformationType,
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		return GetInformation()
+	},
+}
+
+func GetInformation() (Information, error) {
+	stms, err := db.DB.Prepare("SELECT * FROM information order by id desc limit 0,1")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
+	}
+
+	row := stms.QueryRow()
+	stms.Close()
+	var id int64
+	var title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp string
+	err = row.Scan(&id, &title, &description, &icon, &subtitle, &realname, &logo, &email, &qq, &telephone, &copyright, &icp)
+	if err != nil {
+		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
+	}
+	return Information{id, title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp}, nil
+}
