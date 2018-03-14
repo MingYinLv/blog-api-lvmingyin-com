@@ -38,7 +38,7 @@ var AdminLoginQuery = &graphql.Field{
 	Type: AdminType,
 	Args: graphql.FieldConfigArgument{
 		"username": &graphql.ArgumentConfig{
-			Type: graphql.String,
+			Type: graphql.NewNonNull(graphql.String),
 		},
 		"password": &graphql.ArgumentConfig{
 			Type: graphql.String,

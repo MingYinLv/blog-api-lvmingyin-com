@@ -14,6 +14,7 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootMutation",
 	Fields: graphql.Fields{
 		"adminCreate": AdminCreateMutation,
+		"updateInformation": InformationMutation,
 	},
 })
 

@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  name = "github.com/BurntSushi/toml"
+  packages = ["."]
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
+  version = "v0.3.0"
+
+[[projects]]
+  name = "github.com/gin-gonic/gin"
+  packages = [".","binding","render"]
+  revision = "50e7e427300a7eeeb299a4cd5bc1ebfa04d48528"
+  version = "v0.5"
+
+[[projects]]
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   revision = "a0583e0143b1624142adab07e0e97fe106d99561"
@@ -13,9 +25,21 @@
   revision = "1e23489041ba90a66f317fe0deccb236a2fff3cb"
   version = "v0.7.5"
 
+[[projects]]
+  name = "github.com/graphql-go/handler"
+  packages = ["."]
+  revision = "f0393b2c10daeebea900292b8e092e73475399d9"
+  version = "v0.2.1"
+
+[[projects]]
+  name = "github.com/julienschmidt/httprouter"
+  packages = ["."]
+  revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
+  version = "v1.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "61b64a3f1a83be756f0350c024b9ff0a1642c63b4698080a83557113f8414685"
+  inputs-digest = "2061f4bd83ae42a8d769e3e9ed029dfdbf73e9e2b331c651c43651ee0d4e595b"
   solver-name = "gps-cdcl"
   solver-version = 1

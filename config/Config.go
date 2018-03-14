@@ -7,5 +7,5 @@ import (
 type Config struct {
 	Mysql      db.Mysql
 	ListenPort int64
+	ClearLog   bool
 }
-

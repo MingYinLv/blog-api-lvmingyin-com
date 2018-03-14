@@ -65,10 +65,79 @@ var InformationType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var InformationInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "informationInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type: graphql.Int,
+		},
+		"title": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"description": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"icon": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"subtitle": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"realname": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"logo": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"email": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"qq": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"telephone": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"copyright": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"icp": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
 var InformationQuery = &graphql.Field{
 	Type: InformationType,
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 		return GetInformation()
+	},
+}
+
+var InformationMutation = &graphql.Field{
+	Type: InformationType,
+	Args: graphql.FieldConfigArgument{
+		"information": &graphql.ArgumentConfig{
+			Type: InformationInput,
+		},
+	},
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		maps := params.Args["information"].(map[string]interface{})
+		information := Information{
+			int64(maps["id"].(int)),
+			maps["title"].(string),
+			maps["description"].(string),
+			maps["icon"].(string),
+			maps["subtitle"].(string),
+			maps["realname"].(string),
+			maps["logo"].(string),
+			maps["email"].(string),
+			maps["qq"].(string),
+			maps["telephone"].(string),
+			maps["copyright"].(string),
+			maps["icp"].(string),
+		}
+		return UpdateInformation(information)
 	},
 }
 
@@ -88,4 +157,19 @@ func GetInformation() (Information, error) {
 		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
 	}
 	return Information{id, title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp}, nil
+}
+
+func UpdateInformation(information Information) (Information, error) {
+	stms, err := db.DB.Prepare("update information set title=?,logo=?,realname=?,subtitle=?,qq=?,icp=?,email=?,telephone=?,copyright=?,description=?,icon=? where id=?")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return Information{}, errors.New("修改失败")
+	}
+	_, err = stms.Exec(information.Title, information.Logo, information.RealName, information.Subtitle, information.QQ, information.ICP, information.Email, information.Telephone, information.Copyright, information.Description, information.Icon, information.ID)
+	stms.Close()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return Information{}, errors.New("修改失败")
+	}
+	return information, nil
 }
