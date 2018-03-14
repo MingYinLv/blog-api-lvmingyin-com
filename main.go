@@ -4,12 +4,12 @@ import (
 	"blog-api-lvmingyin-com/config"
 	"blog-api-lvmingyin-com/db"
 	"blog-api-lvmingyin-com/router"
+	"blog-api-lvmingyin-com/util"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"os"
 	"time"
-	"blog-api-lvmingyin-com/util"
 )
 
 func main() {
@@ -39,6 +39,11 @@ func main() {
 		listenPort = cfg.ListenPort
 	}
 
+	if cfg.ClearLog {
+		os.RemoveAll("logs")
+		os.Mkdir("logs", os.ModePerm)
+	}
+
 	fs, err := os.Create(fmt.Sprintf("logs/error-%d.log", time.Now().Unix()))
 	defer fs.Close()
 
@@ -46,9 +51,12 @@ func main() {
 		fmt.Println("日志文件打开失败")
 		panic(err)
 	}
-	util.SetLog(fs)
+	// 设置日志文件
+	util.SetLogFile(fs)
 
+	// 链接mysql
 	db.MySqlConn(&cfg.Mysql)
 	defer db.Close()
+	// 启动
 	router.Start(listenPort)
 }
