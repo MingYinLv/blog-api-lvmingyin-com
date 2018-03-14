@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
+	"reflect"
+	"strings"
 )
 
 type Information struct {
@@ -123,20 +125,22 @@ var InformationMutation = &graphql.Field{
 	},
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 		maps := params.Args["information"].(map[string]interface{})
-		information := Information{
-			int64(maps["id"].(int)),
-			maps["title"].(string),
-			maps["description"].(string),
-			maps["icon"].(string),
-			maps["subtitle"].(string),
-			maps["realname"].(string),
-			maps["logo"].(string),
-			maps["email"].(string),
-			maps["qq"].(string),
-			maps["telephone"].(string),
-			maps["copyright"].(string),
-			maps["icp"].(string),
+		information := Information{}
+		t := reflect.TypeOf(information)
+		v := reflect.ValueOf(&information).Elem()
+
+		for k := 0; k < t.NumField(); k++ {
+			name := t.Field(k).Name
+			lowerName := strings.ToLower(name)
+			val, ok := maps[lowerName]
+			if lowerName == "id" {
+				val = int64(val.(int))
+			}
+			if ok {
+				v.FieldByName(name).Set(reflect.ValueOf(val))
+			}
 		}
+
 		return UpdateInformation(information)
 	},
 }
