@@ -16,11 +16,15 @@ var TagType = graphql.NewObject(graphql.ObjectConfig{
 		"tag_name": &graphql.Field{
 			Type: graphql.String,
 		},
-		"articles": &graphql.Field{
-			Type: graphql.NewList(ActType),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return FindArticleListByTagId(p.Source.(Tag).ID)
-			},
-		},
 	},
 })
+
+func init() {
+	TagType.AddFieldConfig("articles", &graphql.Field{
+		Type: graphql.NewList(ActType),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return FindArticleListByTagId(p.Source.(Tag).ID)
+		},
+	})
+}
+

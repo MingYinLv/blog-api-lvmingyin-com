@@ -8,6 +8,13 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+var GetArticles = &graphql.Field{
+	Type: graphql.NewList(ActType),
+	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		return FindArticles()
+	},
+}
+
 var GetArticleByIdQuery = &graphql.Field{
 	Type: ActType,
 	Args: graphql.FieldConfigArgument{
@@ -60,6 +67,34 @@ func FindArticleListByTagId(queryId int64) ([]Article, error) {
 		err = rows.Scan(&id, &title, &content, &cover, &type_id, &create_at, &update_at)
 		if err != nil {
 			return []Article{}, errors.New(fmt.Sprintf("没有该文章"))
+		}
+		result = append(result, Article{id, title, content, cover, type_id, create_at, update_at})
+	}
+	return result, nil
+}
+
+
+func FindArticles() ([]Article, error) {
+	stms, err := db.DB.Prepare("SELECT * FROM article")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+	}
+	defer stms.Close()
+
+	rows, err := stms.Query()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+	}
+
+	var result []Article
+	for rows.Next() {
+		var id, type_id, create_at, update_at int64
+		var title, content, cover string
+		err = rows.Scan(&id, &title, &content, &cover, &type_id, &create_at, &update_at)
+		if err != nil {
+			return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
 		}
 		result = append(result, Article{id, title, content, cover, type_id, create_at, update_at})
 	}

@@ -5,21 +5,23 @@ import "github.com/graphql-go/graphql"
 var query = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootQuery",
 	Fields: graphql.Fields{
-		"login": AdminLoginQuery,
-		"information": InformationQuery,
-		"articleType": GetActTypeByIdQuery,
+		"login":           AdminLoginQuery,
+		"information":     InformationQuery,
+		"articleType":     GetActTypeByIdQuery,
 		"articleTypeList": GetActTypeListQuery,
-		"article": GetArticleByIdQuery,
-		"tag": GetTagByIdQuery,
+		"article":         GetArticleByIdQuery,
+		"tag":             GetTagByIdQuery,
+		"tags":            GetTagsQuery,
+		"articles":        GetArticles,
 	},
 })
 
 var mutation = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootMutation",
 	Fields: graphql.Fields{
-		"adminCreate": AdminCreateMutation,
+		"adminCreate":       AdminCreateMutation,
 		"updateInformation": InformationMutation,
-		"addArticleType": InsertActTypeMutation,
+		"addArticleType":    InsertActTypeMutation,
 		"updateArticleType": UpdateActTypeMutation,
 		"deleteArticleType": DeleteActTypeMutation,
 	},

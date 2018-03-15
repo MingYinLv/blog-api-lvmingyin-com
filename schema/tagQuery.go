@@ -8,6 +8,13 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+var GetTagsQuery = &graphql.Field{
+	Type: graphql.NewList(TagType),
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		return FindTags()
+	},
+}
+
 var GetTagByIdQuery = &graphql.Field{
 	Type: TagType,
 	Args: graphql.FieldConfigArgument{
@@ -61,6 +68,35 @@ func FindTagsByActId(actId int64) ([]Tag, error) {
 		err = rows.Scan(&id, &tag_name)
 		if err != nil {
 			return []Tag{}, errors.New(fmt.Sprintf("获取文章标签失败"))
+		}
+		result = append(result, Tag{id, tag_name})
+
+	}
+	return result, nil
+}
+
+func FindTags() ([]Tag, error) {
+	stms, err := db.DB.Prepare("SELECT * FROM tags")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+	}
+	defer stms.Close()
+
+	rows, err := stms.Query()
+
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+	}
+
+	var result []Tag
+	for rows.Next() {
+		var id int64
+		var tag_name string
+		err = rows.Scan(&id, &tag_name)
+		if err != nil {
+			return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
 		}
 		result = append(result, Tag{id, tag_name})
 
