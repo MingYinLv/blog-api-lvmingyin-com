@@ -151,9 +151,9 @@ func GetInformation() (Information, error) {
 		util.ErrorLog.Println(err)
 		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
 	}
+	defer stms.Close()
 
 	row := stms.QueryRow()
-	stms.Close()
 	var id int64
 	var title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp string
 	err = row.Scan(&id, &title, &description, &icon, &subtitle, &realname, &logo, &email, &qq, &telephone, &copyright, &icp)
@@ -169,11 +169,16 @@ func UpdateInformation(information Information) (Information, error) {
 		util.ErrorLog.Println(err)
 		return Information{}, errors.New("修改失败")
 	}
-	_, err = stms.Exec(information.Title, information.Logo, information.RealName, information.Subtitle, information.QQ, information.ICP, information.Email, information.Telephone, information.Copyright, information.Description, information.Icon, information.ID)
-	stms.Close()
+	defer stms.Close()
+	result, err := stms.Exec(information.Title, information.Logo, information.RealName, information.Subtitle, information.QQ, information.ICP, information.Email, information.Telephone, information.Copyright, information.Description, information.Icon, information.ID)
 	if err != nil {
 		util.ErrorLog.Println(err)
 		return Information{}, errors.New("修改失败")
+	}
+	_, err = result.RowsAffected()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return Information{}, errors.New("类型修改失败")
 	}
 	return information, nil
 }

@@ -81,9 +81,9 @@ func FindAdminByUserName(username string) (Admin, error) {
 		util.ErrorLog.Println(err)
 		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
 	}
+	defer stms.Close()
 
 	row := stms.QueryRow(username)
-	stms.Close()
 	var id int64
 	var userResult, pwdResult, salt string
 	err = row.Scan(&id, &userResult, &pwdResult, &salt)
@@ -120,17 +120,21 @@ func AdminCreate(username, password string) (Admin, error) {
 	stms, err := db.DB.Prepare("INSERT INTO admin(username,password,salt) values(?,?,?)")
 	if err != nil {
 		util.ErrorLog.Println(err)
+		return Admin{}, errors.New("用户创建失败")
 	}
+	defer stms.Close()
+
 	salt := util.GetRandomString()
 	pwd := util.GetSha256Password(password, salt)
 	result, err := stms.Exec(username, pwd, salt)
-	stms.Close()
 	if err != nil {
 		util.ErrorLog.Println(err)
+		return Admin{}, errors.New("用户创建失败")
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
+		util.ErrorLog.Println(err)
 		return Admin{}, errors.New("用户创建失败")
 	}
 	return Admin{ID: id, Username: username}, nil

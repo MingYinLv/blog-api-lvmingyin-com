@@ -8,6 +8,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"login": AdminLoginQuery,
 		"information": InformationQuery,
 		"articleType": GetActTypeByIdQuery,
+		"articleTypeList": GetActTypeListQuery,
 	},
 })
 
@@ -16,6 +17,8 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 	Fields: graphql.Fields{
 		"adminCreate": AdminCreateMutation,
 		"updateInformation": InformationMutation,
+		"addArticleType": InsertActTypeMutation,
+		"updateArticleType": UpdateActTypeMutation,
 	},
 })
 
