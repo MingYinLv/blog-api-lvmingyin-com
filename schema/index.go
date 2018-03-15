@@ -19,6 +19,7 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 		"updateInformation": InformationMutation,
 		"addArticleType": InsertActTypeMutation,
 		"updateArticleType": UpdateActTypeMutation,
+		"deleteArticleType": DeleteActTypeMutation,
 	},
 })
 

@@ -69,6 +69,22 @@ var UpdateActTypeMutation = &graphql.Field{
 	},
 }
 
+var DeleteActTypeMutation = &graphql.Field{
+	Type: graphql.Int,
+	Args: graphql.FieldConfigArgument{
+		"id": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	},
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		if id, idOK := params.Args["id"].(int); idOK {
+			return DeleteArticleType(int64(id))
+		} else {
+			return 0, errors.New("请输入要删除的的类型id")
+		}
+	},
+}
+
 func AddArticleType(articleType *ArticleType) (*ArticleType, error) {
 	_, err := FindActTypeByName(articleType.TypeName)
 	if err == nil {
@@ -105,10 +121,10 @@ func UpdateArticleType(articleType *ArticleType) (*ArticleType, error) {
 	}
 
 	actType, err := FindActTypeByName(articleType.TypeName)
-	if err == nil && articleType.ID != actType.ID{
+	if err == nil && articleType.ID != actType.ID {
 		// 能查到数据，并且id和当前修改的id不一样，不允许冲突
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
-	}else if err != nil {
+	} else if err != nil {
 		return &ArticleType{}, errors.New("类型修改失败")
 	}
 
@@ -129,4 +145,21 @@ func UpdateArticleType(articleType *ArticleType) (*ArticleType, error) {
 		return &ArticleType{}, errors.New("类型修改失败")
 	}
 	return articleType, nil
+}
+
+func DeleteArticleType(idQuery int64) (int64, error) {
+	stms, err := db.DB.Prepare("DELETE FROM articleType WHERE id = ?")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return 0, errors.New("类型删除失败")
+	}
+	defer stms.Close()
+
+	result, err := stms.Exec(idQuery)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return 0, errors.New("类型删除失败")
+	}
+
+	return result.RowsAffected()
 }
