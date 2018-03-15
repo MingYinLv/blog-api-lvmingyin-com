@@ -9,6 +9,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"information": InformationQuery,
 		"articleType": GetActTypeByIdQuery,
 		"articleTypeList": GetActTypeListQuery,
+		"article": GetArticleByIdQuery,
+		"tag": GetTagByIdQuery,
 	},
 })
 
