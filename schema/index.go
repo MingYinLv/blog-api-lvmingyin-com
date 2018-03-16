@@ -28,6 +28,7 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 		"deleteTag":         DeleteTagMutation,
 		"updateTag":         UpdateTagMutation,
 		"addArticle":		AddArticleMutation,
+		"updateArticle":		UpdateArticleMutation,
 	},
 })
 

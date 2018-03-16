@@ -54,6 +54,54 @@ var AddArticleMutation = &graphql.Field{
 	},
 }
 
+var UpdateArticleMutation = &graphql.Field{
+	Type: ActType,
+	Args: graphql.FieldConfigArgument{
+		"id": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+		"title": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"content": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"cover": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"type_id": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	},
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		title, tOK := params.Args["title"].(string)
+		content, cOK := params.Args["content"].(string)
+		cover, _ := params.Args["cover"].(string)
+		type_id, tiOK := params.Args["type_id"].(int)
+		id, idOK := params.Args["id"].(int)
+
+		if !idOK {
+			return ArticleType{}, errors.New("请输入id")
+		} else if !tOK || strings.TrimSpace(title) == "" {
+			return ArticleType{}, errors.New("请输入文章标题")
+		} else if !cOK || strings.TrimSpace(content) == "" {
+			return ArticleType{}, errors.New("请输入文章内容")
+		} else if !tiOK || type_id < 1 {
+			return ArticleType{}, errors.New("请选择文章分类")
+		}
+
+		article := Article{
+			ID:      int64(id),
+			Title:   title,
+			Content: content,
+			Cover:   cover,
+			TypeId:  int64(type_id),
+		}
+
+		return UpdateArticle(&article)
+	},
+}
+
 func AddArticle(article *Article, tags *[]interface{}) (*Article, error) {
 
 	tx, err := db.DB.Begin()
@@ -116,4 +164,29 @@ func AddArticle(article *Article, tags *[]interface{}) (*Article, error) {
 	}
 	return article, nil
 
+}
+
+func UpdateArticle(article *Article) (*Article, error) {
+	_, err := FindArticleById(article.ID)
+	if err != nil {
+		return &Article{}, errors.New("修改的文章不存在")
+	}
+
+	stms, err := db.DB.Prepare("UPDATE article SET title = ?, content = ?, cover=?,type_id=?,update_at=? WHERE id = ?")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return &Article{}, errors.New("文章修改失败")
+	}
+	defer stms.Close()
+	result, err := stms.Exec(article.Title, article.Content, article.Cover, article.TypeId, time.Now().Unix(), article.ID)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return &Article{}, errors.New("文章修改失败")
+	}
+	_, err = result.RowsAffected()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return &Article{}, errors.New("文章修改失败")
+	}
+	return article, nil
 }
