@@ -12,6 +12,24 @@ type Article struct {
 	UpdateAt int64  `json:"update_at"`
 }
 
+var ActListType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "ArticleList",
+	Fields: graphql.Fields{
+		"page": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"size": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"total": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"data": &graphql.Field{
+			Type: graphql.NewList(ActType),
+		},
+	},
+})
+
 var ActType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Article",
 	Fields: graphql.Fields{

@@ -21,9 +21,13 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 	Fields: graphql.Fields{
 		"adminCreate":       AdminCreateMutation,
 		"updateInformation": InformationMutation,
-		"addArticleType":    InsertActTypeMutation,
+		"addArticleType":    AddActTypeMutation,
 		"updateArticleType": UpdateActTypeMutation,
 		"deleteArticleType": DeleteActTypeMutation,
+		"addTag":            AddTagMutation,
+		"deleteTag":         DeleteTagMutation,
+		"updateTag":         UpdateTagMutation,
+		"addArticle":		AddArticleMutation,
 	},
 })
 

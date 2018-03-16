@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var InsertActTypeMutation = &graphql.Field{
+var AddActTypeMutation = &graphql.Field{
 	Type: ActTType,
 	Args: graphql.FieldConfigArgument{
 		"type_name": &graphql.ArgumentConfig{
@@ -124,8 +124,6 @@ func UpdateArticleType(articleType *ArticleType) (*ArticleType, error) {
 	if err == nil && articleType.ID != actType.ID {
 		// 能查到数据，并且id和当前修改的id不一样，不允许冲突
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
-	} else if err != nil {
-		return &ArticleType{}, errors.New("类型修改失败")
 	}
 
 	stms, err := db.DB.Prepare("UPDATE articleType SET typeName = ?,showMenu = ?,logo = ? WHERE id = ?")

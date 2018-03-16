@@ -9,9 +9,30 @@ import (
 )
 
 var GetTagsQuery = &graphql.Field{
-	Type: graphql.NewList(TagType),
+	Type: TagListType,
+	Args: graphql.FieldConfigArgument{
+		"ids": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.Int),
+		},
+		"page": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+		"size": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	},
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-		return FindTags()
+		ids, _ := params.Args["ids"].([]interface{})
+		page, pOK := params.Args["page"].(int)
+		size, sOK := params.Args["size"].(int)
+		if !pOK {
+			page = 1
+		}
+		if !sOK {
+			size = 10
+		}
+		return FindTags(&ids, page, size)
+
 	},
 }
 
@@ -46,8 +67,26 @@ func FindTagById(queryId int64) (Tag, error) {
 	return Tag{id, tag_name}, nil
 }
 
+func FindTagByName(tagName string) (Tag, error) {
+	stms, err := db.DB.Prepare("SELECT * FROM tags where tag_name = ?")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return Tag{}, errors.New(fmt.Sprintf("获取标签信息失败"))
+	}
+
+	row := stms.QueryRow(tagName)
+	stms.Close()
+	var id int64
+	var tag_name string
+	err = row.Scan(&id, &tag_name)
+	if err != nil {
+		return Tag{}, errors.New(fmt.Sprintf("没有该标签"))
+	}
+	return Tag{id, tag_name}, nil
+}
+
 func FindTagsByActId(actId int64) ([]Tag, error) {
-	stms, err := db.DB.Prepare("SELECT tags.id,tags.tagName from actMappTag right join tags on tags.id = actMappTag.tag_id where actMappTag.act_id = ?")
+	stms, err := db.DB.Prepare("SELECT tags.id,tags.tag_name from actMappTag right join tags on tags.id = actMappTag.tag_id where actMappTag.act_id = ?")
 	if err != nil {
 		util.ErrorLog.Println(err)
 		return []Tag{}, errors.New(fmt.Sprintf("获取文章标签失败"))
@@ -75,31 +114,51 @@ func FindTagsByActId(actId int64) ([]Tag, error) {
 	return result, nil
 }
 
-func FindTags() ([]Tag, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM tags")
+func FindTags(ids *[]interface{}, page, size int) (ListResult, error) {
+	sql := util.GenInKeys("tags", "id", ids, page, size)
+	stms, err := db.DB.Prepare(sql)
 	if err != nil {
 		util.ErrorLog.Println(err)
-		return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+		return ListResult{}, errors.New(fmt.Sprintf("获取标签列表失败"))
 	}
 	defer stms.Close()
 
-	rows, err := stms.Query()
+	rows, err := stms.Query(*ids...)
 
 	if err != nil {
 		util.ErrorLog.Println(err)
-		return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+		return ListResult{}, errors.New(fmt.Sprintf("获取标签列表失败"))
 	}
 
-	var result []Tag
+	var result []interface{}
 	for rows.Next() {
 		var id int64
 		var tag_name string
 		err = rows.Scan(&id, &tag_name)
 		if err != nil {
-			return []Tag{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+			return ListResult{}, errors.New(fmt.Sprintf("获取标签列表失败"))
 		}
 		result = append(result, Tag{id, tag_name})
 
 	}
-	return result, nil
+
+	stmsTotal, err := db.DB.Prepare("SELECT count(id) FROM tags")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return ListResult{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+	}
+	defer stmsTotal.Close()
+	row := stmsTotal.QueryRow()
+
+	var total int64
+	err = row.Scan(&total)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return ListResult{}, errors.New(fmt.Sprintf("获取标签列表失败"))
+	}
+
+	tagList := ListResult{
+		int64(page), int64(size), total, result,
+	}
+	return tagList, nil
 }

@@ -16,14 +16,20 @@ var GetActTypeByIdQuery = &graphql.Field{
 		},
 	},
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-		id := int64(params.Args["id"].(int))
-		return FindActTypeById(id)
+		id, idOK := params.Args["id"].(int)
+		if !idOK {
+			return nil, errors.New("请输入类型id")
+		}
+		return FindActTypeById(int64(id))
 	},
 }
 
 var GetActTypeListQuery = &graphql.Field{
 	Type: graphql.NewList(ActTType),
 	Args: graphql.FieldConfigArgument{
+		"ids": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.Int),
+		},
 		"type_name": &graphql.ArgumentConfig{
 			Type: graphql.String,
 		},
@@ -34,8 +40,22 @@ var GetActTypeListQuery = &graphql.Field{
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 		typeName, nameOK := params.Args["type_name"]
 		showMenu, menuOK := params.Args["show_menu"]
+		ids, idsOK := params.Args["ids"].([]interface{})
 		sql := "SELECT * FROM articleType WHERE 1 = 1"
 		var param []interface{}
+		if idsOK {
+			if len(ids) > 0 {
+				sql = fmt.Sprintf("%s AND id in (", sql)
+				for i := range ids {
+					sql = fmt.Sprintf("%s ?", sql)
+					if i < len(ids)-1 {
+						sql = fmt.Sprintf("%s,", sql)
+					}
+					param = append(param, ids[i])
+				}
+				sql = fmt.Sprintf("%s)", sql)
+			}
+		}
 		if nameOK {
 			sql = fmt.Sprintf("%s AND typeName = ?", sql)
 			param = append(param, typeName)

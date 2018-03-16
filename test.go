@@ -1,8 +1,11 @@
 package main
 
-import "blog-api-lvmingyin-com/schema"
+import (
+	"fmt"
+)
 
 func main() {
-
-	schema.AdminLogin("lvmingyin", "lvmingyin123")
+	for i := range []int{1,2,3}{
+		fmt.Println(i)
+	}
 }

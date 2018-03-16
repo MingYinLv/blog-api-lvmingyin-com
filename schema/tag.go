@@ -19,6 +19,24 @@ var TagType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var TagListType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "TagList",
+	Fields: graphql.Fields{
+		"page": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"size": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"total": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"data": &graphql.Field{
+			Type: graphql.NewList(TagType),
+		},
+	},
+})
+
 func init() {
 	TagType.AddFieldConfig("articles", &graphql.Field{
 		Type: graphql.NewList(ActType),

@@ -9,9 +9,30 @@ import (
 )
 
 var GetArticles = &graphql.Field{
-	Type: graphql.NewList(ActType),
-	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-		return FindArticles()
+	Type: ActListType,
+	Args: graphql.FieldConfigArgument{
+		"ids": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.Int),
+		},
+		"page": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+		"size": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	},
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		ids, _ := params.Args["ids"].([]interface{})
+		page, pOK := params.Args["page"].(int)
+		size, sOK := params.Args["size"].(int)
+		if !pOK {
+			page = 1
+		}
+		if !sOK {
+			size = 10
+		}
+		fmt.Println(page, size)
+		return FindArticles(&ids, page, size)
 	},
 }
 
@@ -73,30 +94,49 @@ func FindArticleListByTagId(queryId int64) ([]Article, error) {
 	return result, nil
 }
 
-
-func FindArticles() ([]Article, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM article")
+func FindArticles(ids *[]interface{}, page, size int) (ListResult, error) {
+	sql := util.GenInKeys("article", "id", ids, page, size)
+	stms, err := db.DB.Prepare(sql)
 	if err != nil {
 		util.ErrorLog.Println(err)
-		return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+		return ListResult{}, errors.New(fmt.Sprintf("获取文章列表失败"))
 	}
 	defer stms.Close()
 
-	rows, err := stms.Query()
+	rows, err := stms.Query(*ids...)
 	if err != nil {
 		util.ErrorLog.Println(err)
-		return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+		return ListResult{}, errors.New(fmt.Sprintf("获取文章列表失败"))
 	}
 
-	var result []Article
+	var result []interface{}
 	for rows.Next() {
 		var id, type_id, create_at, update_at int64
 		var title, content, cover string
 		err = rows.Scan(&id, &title, &content, &cover, &type_id, &create_at, &update_at)
 		if err != nil {
-			return []Article{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+			return ListResult{}, errors.New(fmt.Sprintf("获取文章列表失败"))
 		}
 		result = append(result, Article{id, title, content, cover, type_id, create_at, update_at})
 	}
-	return result, nil
+
+	stmsTotal, err := db.DB.Prepare("SELECT count(id) FROM article")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return ListResult{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+	}
+	defer stmsTotal.Close()
+	row := stmsTotal.QueryRow()
+
+	var total int64
+	err = row.Scan(&total)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return ListResult{}, errors.New(fmt.Sprintf("获取文章列表失败"))
+	}
+
+	actList := ListResult{
+		int64(page), int64(size), total, result,
+	}
+	return actList, nil
 }
