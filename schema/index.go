@@ -13,6 +13,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"tag":             GetTagByIdQuery,
 		"tags":            GetTagsQuery,
 		"articles":        GetArticles,
+		"links":           GetLinks,
+		"link":            GetLink,
 	},
 })
 
@@ -27,8 +29,12 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 		"addTag":            AddTagMutation,
 		"deleteTag":         DeleteTagMutation,
 		"updateTag":         UpdateTagMutation,
-		"addArticle":		AddArticleMutation,
-		"updateArticle":		UpdateArticleMutation,
+		"addArticle":        AddArticleMutation,
+		"updateArticle":     UpdateArticleMutation,
+		"deleteArticle":     DeleteArticleMutation,
+		"addLink":           AddLinkMutation,
+		"updateLink":        UpdateLinkMutation,
+		"deleteLink":        DeleteLinkMutation,
 	},
 })
 

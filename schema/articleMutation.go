@@ -102,6 +102,22 @@ var UpdateArticleMutation = &graphql.Field{
 	},
 }
 
+var DeleteArticleMutation = &graphql.Field{
+	Type: graphql.Int,
+	Args: graphql.FieldConfigArgument{
+		"id": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	},
+	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		if id, idOK := params.Args["id"].(int); idOK {
+			return DeleteArticle(int64(id))
+		} else {
+			return 0, errors.New("请输入要删除的的文章id")
+		}
+	},
+}
+
 func AddArticle(article *Article, tags *[]interface{}) (*Article, error) {
 
 	tx, err := db.DB.Begin()
@@ -147,7 +163,6 @@ func AddArticle(article *Article, tags *[]interface{}) (*Article, error) {
 			return &Article{}, errors.New("文章创建失败")
 		}
 
-		fmt.Println(sql)
 		_, err = stmsTag.Exec(execParam...)
 		if err != nil {
 			util.ErrorLog.Println(err)
@@ -189,4 +204,62 @@ func UpdateArticle(article *Article) (*Article, error) {
 		return &Article{}, errors.New("文章修改失败")
 	}
 	return article, nil
+}
+
+func DeleteArticle(articleId int64) (int64, error) {
+
+	tx, err := db.DB.Begin()
+	stms, err := tx.Prepare("DELETE FROM article WHERE id=?")
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+	defer stms.Close()
+
+	result, err := stms.Exec(articleId)
+
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+
+	row, err := result.RowsAffected()
+
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+
+	sql := "DELETE FROM actMappTag WHERE act_id = ?"
+	stmsTag, err := tx.Prepare(sql)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+
+	result, err = stmsTag.Exec(articleId)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+
+	tagRow, err := result.RowsAffected()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		util.ErrorLog.Println(err)
+		tx.Rollback()
+		return 0, errors.New("文章删除失败")
+	}
+	return row + tagRow, nil
 }

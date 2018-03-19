@@ -30,3 +30,5 @@ var LinkType = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
+
+

@@ -5,7 +5,5 @@ import (
 )
 
 func main() {
-	for i := range []int{1,2,3}{
-		fmt.Println(i)
-	}
+	fmt.Printf("%s AND name like %s\n", "hhh", "%?%")
 }
