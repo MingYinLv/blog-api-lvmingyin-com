@@ -78,21 +78,7 @@ var DeleteLinkMutation = &graphql.Field{
 }
 
 func AddLink(link *Link) (*Link, error) {
-	stms, err := db.DB.Prepare("INSERT INTO link(icon,type,url,name) values(?,?,?,?)")
-
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("链接创建失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(link.Icon, link.Type, link.URL, link.Name)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("链接创建失败")
-	}
-
-	id, err := result.LastInsertId()
+	id, err := ExecInsert("INSERT INTO link(icon,type,url,name) values(?,?,?,?)", link.Icon, link.Type, link.URL, link.Name)
 	if err != nil {
 		util.ErrorLog.Println(err)
 		return &Link{}, errors.New("链接创建失败")
@@ -103,20 +89,7 @@ func AddLink(link *Link) (*Link, error) {
 }
 
 func DeleteLink(linkId int64) (int64, error) {
-	stms, err := db.DB.Prepare("DELETE FROM link WHERE id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("链接删除失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(linkId)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("链接删除失败")
-	}
-
-	return result.RowsAffected()
+	return ExecDelete("DELETE FROM link WHERE id = ?", linkId)
 }
 
 func UpdateLink(link *Link) (*Link, error) {
@@ -125,21 +98,11 @@ func UpdateLink(link *Link) (*Link, error) {
 		return &Link{}, errors.New("修改的链接不存在")
 	}
 
-	stms, err := db.DB.Prepare("UPDATE link SET icon = ?, url = ?, type=?, name=? WHERE id = ?")
+	_, err = ExecUpdate("UPDATE link SET icon = ?, url = ?, type=?, name=? WHERE id = ?", link.Icon, link.URL, link.Type, link.Name, link.ID)
+
 	if err != nil {
 		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("修改的链接不存在")
-	}
-	defer stms.Close()
-	result, err := stms.Exec(link.Icon, link.URL, link.Type, link.Name, link.ID)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("修改的链接不存在")
-	}
-	_, err = result.RowsAffected()
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("修改的链接不存在")
+		return &Link{}, errors.New("修改失败")
 	}
 	return link, nil
 }

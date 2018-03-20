@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/graphql-go/graphql"
+import (
+	"blog-api-lvmingyin-com/util"
+	"database/sql"
+	"github.com/graphql-go/graphql"
+)
 
 type Link struct {
 	ID   int64  `json:"id"`
@@ -8,6 +12,22 @@ type Link struct {
 	Type int64  `json:"type"` // 0 友情链接 1 其他个人空间
 	URL  string `json:"url"`
 	Name string `json:"name"`
+}
+
+func (link *Link) Scan(row *sql.Row) error {
+	var id, linkType int64
+	var icon, url, name string
+	err := row.Scan(&id, &icon, &linkType, &url, &name)
+	if err != nil {
+		util.ErrorLog.Println(err)
+		return err
+	}
+	link.ID = id
+	link.Type = linkType
+	link.Icon = icon
+	link.URL = url
+	link.Name = name
+	return nil
 }
 
 var LinkType = graphql.NewObject(graphql.ObjectConfig{
@@ -30,5 +50,3 @@ var LinkType = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
-
-
