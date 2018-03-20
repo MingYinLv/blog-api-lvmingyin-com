@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
 	"blog-api-lvmingyin-com/util"
 	"errors"
 	"github.com/graphql-go/graphql"

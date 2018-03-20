@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
 	"blog-api-lvmingyin-com/util"
 	"errors"
 	"fmt"
@@ -71,21 +70,8 @@ func AddTag(tag *Tag) (*Tag, error) {
 	if err == nil {
 		return &Tag{}, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
 	}
-	stms, err := db.DB.Prepare("INSERT INTO tags(tag_name) values(?)")
 
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签创建失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(tag.TagName)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签创建失败")
-	}
-
-	id, err := result.LastInsertId()
+	id, err := ExecInsert("INSERT INTO tags(tag_name) values(?)", tag.TagName)
 	if err != nil {
 		util.ErrorLog.Println(err)
 		return &Tag{}, errors.New("标签创建失败")
@@ -96,20 +82,7 @@ func AddTag(tag *Tag) (*Tag, error) {
 }
 
 func DeleteTag(idQuery int64) (int64, error) {
-	stms, err := db.DB.Prepare("DELETE FROM tags WHERE id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("标签删除失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(idQuery)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("标签删除失败")
-	}
-
-	return result.RowsAffected()
+	return ExecDelete("DELETE FROM tags WHERE id = ?", idQuery)
 }
 
 func UpdateTag(tag *Tag) (*Tag, error) {
@@ -119,23 +92,12 @@ func UpdateTag(tag *Tag) (*Tag, error) {
 	}
 
 	actType, err := FindTagByName(tag.TagName)
-	if err == nil && tag.ID != actType.ID {
+	if err == nil && tag.ID != actType.(Tag).ID {
 		// 能查到数据，并且id和当前修改的id不一样，不允许冲突
 		return &Tag{}, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
 	}
 
-	stms, err := db.DB.Prepare("UPDATE tags SET tag_name = ? WHERE id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签修改失败")
-	}
-	defer stms.Close()
-	result, err := stms.Exec(tag.TagName, tag.ID)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签修改失败")
-	}
-	_, err = result.RowsAffected()
+	_, err = ExecUpdate("UPDATE tags SET tag_name = ? WHERE id = ?", tag.TagName, tag.ID)
 	if err != nil {
 		util.ErrorLog.Println(err)
 		return &Tag{}, errors.New("标签修改失败")

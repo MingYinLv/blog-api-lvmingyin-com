@@ -49,33 +49,26 @@ var GetTagByIdQuery = &graphql.Field{
 	},
 }
 
-func FindTagById(queryId int64) (Tag, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM tags where id = ?")
+func FindTagById(queryId int64) (interface{}, error) {
+
+	row, err := QueryRow("SELECT * FROM tags where id = ?", queryId)
 	if err != nil {
-		util.ErrorLog.Println(err)
 		return Tag{}, errors.New(fmt.Sprintf("获取标签信息失败"))
 	}
-
-	row := stms.QueryRow(queryId)
-	stms.Close()
 	var id int64
 	var tag_name string
 	err = row.Scan(&id, &tag_name)
 	if err != nil {
-		return Tag{}, errors.New(fmt.Sprintf("没有该标签"))
+		return nil, errors.New(fmt.Sprintf("没有该标签"))
 	}
 	return Tag{id, tag_name}, nil
 }
 
-func FindTagByName(tagName string) (Tag, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM tags where tag_name = ?")
+func FindTagByName(tagName string) (interface{}, error) {
+	row, err := QueryRow("SELECT * FROM tags where tag_name = ?", tagName)
 	if err != nil {
-		util.ErrorLog.Println(err)
 		return Tag{}, errors.New(fmt.Sprintf("获取标签信息失败"))
 	}
-
-	row := stms.QueryRow(tagName)
-	stms.Close()
 	var id int64
 	var tag_name string
 	err = row.Scan(&id, &tag_name)
