@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
 	"strings"
@@ -39,7 +38,7 @@ var GetLink = &graphql.Field{
 	},
 }
 
-func FindLinks(link Link) ([]interface{}, error) {
+func FindLinks(link Link) (interface{}, error) {
 	sql := "SELECT * FROM link WHERE 1 "
 	var params []interface{}
 	if strings.TrimSpace(link.Name) != "" && strings.TrimSpace(link.URL) != "" {
@@ -53,35 +52,10 @@ func FindLinks(link Link) ([]interface{}, error) {
 		sql = fmt.Sprintf("%s AND type = ?", sql)
 		params = append(params, link.Type)
 	}
-	rows, err := Query(sql, params...)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("获取链接列表失败"))
-	}
-	defer rows.Close()
-
-	var result []interface{}
-	for rows.Next() {
-		var id, linkType int64
-		var url, name, icon string
-		err = rows.Scan(&id, &icon, &linkType, &url, &name)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("获取标签列表失败"))
-		}
-		result = append(result, Link{id, icon, linkType, url, name})
-	}
-	return result, nil
+	return linkDao.Query(sql, params...)
 
 }
 
 func FindLinkById(linkId int64) (interface{}, error) {
-	row, err := QueryRow("SELECT * FROM link where id = ?", linkId)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("查询失败"))
-	}
-	link := Link{}
-	err = link.Scan(row)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("没有该链接"))
-	}
-	return link, nil
+	return linkDao.QueryRow("SELECT * FROM link where id = ?", linkId)
 }

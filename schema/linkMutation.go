@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/util"
 	"errors"
 	"github.com/graphql-go/graphql"
 )
@@ -27,7 +26,7 @@ var AddLinkMutation = &graphql.Field{
 		linkType, _ := p.Args["type"].(int)
 		url, _ := p.Args["url"].(string)
 		name, _ := p.Args["name"].(string)
-		return AddLink(&Link{Icon: icon, Type: int64(linkType), URL: url, Name: name})
+		return AddLink(Link{Icon: icon, Type: int64(linkType), URL: url, Name: name})
 	},
 }
 
@@ -56,7 +55,7 @@ var UpdateLinkMutation = &graphql.Field{
 		id, _ := p.Args["id"].(int)
 		url, _ := p.Args["url"].(string)
 		name, _ := p.Args["name"].(string)
-		return UpdateLink(&Link{ID: int64(id), Icon: icon, Type: int64(linkType), URL: url, Name: name})
+		return UpdateLink(Link{ID: int64(id), Icon: icon, Type: int64(linkType), URL: url, Name: name})
 	},
 }
 
@@ -76,32 +75,15 @@ var DeleteLinkMutation = &graphql.Field{
 	},
 }
 
-func AddLink(link *Link) (*Link, error) {
-	id, err := ExecInsert("INSERT INTO link(icon,type,url,name) values(?,?,?,?)", link.Icon, link.Type, link.URL, link.Name)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("链接创建失败")
-	}
-	link.ID = id
-	return link, nil
+func AddLink(link Link) (interface{}, error) {
+	return linkDao.Insert("INSERT INTO link(icon,type,url,name) values(?,?,?,?)", link, link.Icon, link.Type, link.URL, link.Name)
 
 }
 
 func DeleteLink(linkId int64) (int64, error) {
-	return ExecDelete("DELETE FROM link WHERE id = ?", linkId)
+	return linkDao.Delete("DELETE FROM link WHERE id = ?", linkId)
 }
 
-func UpdateLink(link *Link) (*Link, error) {
-	_, err := FindLinkById(link.ID)
-	if err != nil {
-		return &Link{}, errors.New("修改的链接不存在")
-	}
-
-	_, err = ExecUpdate("UPDATE link SET icon = ?, url = ?, type=?, name=? WHERE id = ?", link.Icon, link.URL, link.Type, link.Name, link.ID)
-
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Link{}, errors.New("修改失败")
-	}
-	return link, nil
+func UpdateLink(link Link) (interface{}, error) {
+	return linkDao.Update("UPDATE link SET icon = ?, url = ?, type=?, name=? WHERE id = ?", link, link.Icon, link.URL, link.Type, link.Name, link.ID)
 }
