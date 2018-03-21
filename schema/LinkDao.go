@@ -2,7 +2,30 @@ package schema
 
 type LinkDao struct{}
 
-func (*LinkDao) QueryRow(sql string, params ...interface{}) (interface{}, error) {
+func (LinkDao) Insert(sql string, self interface{}, params ...interface{}) (interface{}, error) {
+	id, err := ExecInsert(sql, params...)
+	if err != nil {
+		return DBErrorLog("添加失败", err)
+	}
+	link := self.(Link)
+	link.ID = id
+	return link, nil
+}
+
+func (LinkDao) Update(sql string, self interface{}, params ...interface{}) (interface{}, error) {
+	_, err := ExecUpdate(sql, params...)
+
+	if err != nil {
+		return DBErrorLog("修改失败", err)
+	}
+	return self, nil
+}
+
+func (LinkDao) Delete(sql string, params ...interface{}) (int64, error) {
+	return ExecDelete(sql, params...)
+}
+
+func (LinkDao) QueryRow(sql string, params ...interface{}) (interface{}, error) {
 	row, err := QueryRow(sql, params...)
 	if err != nil {
 		return DBErrorLog("查询失败", err)
@@ -20,7 +43,7 @@ func (*LinkDao) QueryRow(sql string, params ...interface{}) (interface{}, error)
 	return Link{id, icon, linkType, url, name}, nil
 }
 
-func (*LinkDao) Query(sql string, params ...interface{}) (interface{}, error) {
+func (LinkDao) Query(sql string, params ...interface{}) (interface{}, error) {
 	rows, err := Query(sql, params...)
 	if err != nil {
 		return DBErrorLog("查询失败", err)
@@ -40,27 +63,8 @@ func (*LinkDao) Query(sql string, params ...interface{}) (interface{}, error) {
 	return result, nil
 }
 
-func (*LinkDao) Delete(sql string, params ...interface{}) (int64, error) {
-	return ExecDelete(sql, params...)
+var linkDao DaoBasic
+
+func init(){
+	linkDao = LinkDao{}
 }
-
-func (*LinkDao) Update(sql string, self interface{}, params ...interface{}) (interface{}, error) {
-	_, err := ExecUpdate(sql, params...)
-
-	if err != nil {
-		return DBErrorLog("修改失败", err)
-	}
-	return self, nil
-}
-
-func (*LinkDao) Insert(sql string, self interface{}, params ...interface{}) (interface{}, error) {
-	id, err := ExecInsert(sql, params...)
-	if err != nil {
-		return DBErrorLog("添加失败", err)
-	}
-	link := self.(Link)
-	link.ID = id
-	return link, nil
-}
-
-var linkDao = LinkDao{}
