@@ -51,60 +51,15 @@ var GetTagByIdQuery = &graphql.Field{
 
 func FindTagById(queryId int64) (interface{}, error) {
 
-	row, err := QueryRow("SELECT * FROM tags where id = ?", queryId)
-	if err != nil {
-		return Tag{}, errors.New(fmt.Sprintf("获取标签信息失败"))
-	}
-	var id int64
-	var tag_name string
-	err = row.Scan(&id, &tag_name)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("没有该标签"))
-	}
-	return Tag{id, tag_name}, nil
+	return tagDao.QueryRow("SELECT * FROM tags where id = ?", queryId)
 }
 
 func FindTagByName(tagName string) (interface{}, error) {
-	row, err := QueryRow("SELECT * FROM tags where tag_name = ?", tagName)
-	if err != nil {
-		return Tag{}, errors.New(fmt.Sprintf("获取标签信息失败"))
-	}
-	var id int64
-	var tag_name string
-	err = row.Scan(&id, &tag_name)
-	if err != nil {
-		return Tag{}, errors.New(fmt.Sprintf("没有该标签"))
-	}
-	return Tag{id, tag_name}, nil
+	return tagDao.QueryRow("SELECT * FROM tags where tag_name = ?", tagName)
 }
 
-func FindTagsByActId(actId int64) ([]Tag, error) {
-	stms, err := db.DB.Prepare("SELECT tags.id,tags.tag_name from actMappTag right join tags on tags.id = actMappTag.tag_id where actMappTag.act_id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return []Tag{}, errors.New(fmt.Sprintf("获取文章标签失败"))
-	}
-	defer stms.Close()
-
-	rows, err := stms.Query(actId)
-
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return []Tag{}, errors.New(fmt.Sprintf("获取文章标签失败"))
-	}
-
-	var result []Tag
-	for rows.Next() {
-		var id int64
-		var tag_name string
-		err = rows.Scan(&id, &tag_name)
-		if err != nil {
-			return []Tag{}, errors.New(fmt.Sprintf("获取文章标签失败"))
-		}
-		result = append(result, Tag{id, tag_name})
-
-	}
-	return result, nil
+func FindTagsByActId(actId int64) (interface{}, error) {
+	return tagDao.Query("SELECT tags.id,tags.tag_name from actMappTag right join tags on tags.id = actMappTag.tag_id where actMappTag.act_id = ?", actId)
 }
 
 func FindTags(ids *[]interface{}, page, size int) (ListResult, error) {

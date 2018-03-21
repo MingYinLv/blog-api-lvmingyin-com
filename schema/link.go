@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/util"
-	"database/sql"
 	"github.com/graphql-go/graphql"
 )
 
@@ -14,21 +12,6 @@ type Link struct {
 	Name string `json:"name"`
 }
 
-func (link *Link) Scan(row *sql.Row) error {
-	var id, linkType int64
-	var icon, url, name string
-	err := row.Scan(&id, &icon, &linkType, &url, &name)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return err
-	}
-	link.ID = id
-	link.Type = linkType
-	link.Icon = icon
-	link.URL = url
-	link.Name = name
-	return nil
-}
 
 var LinkType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Link",

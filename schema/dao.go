@@ -7,3 +7,11 @@ type DaoBasic interface {
 	QueryRow(sql string, params ...interface{}) (interface{}, error)
 	Query(sql string, params ...interface{}) (interface{}, error)
 }
+
+func UpdateReturnByGraphql(sql string, self interface{}, params ...interface{}) (interface{}, error){
+	_, err := ExecUpdate(sql, params...)
+	if err != nil {
+		return DBErrorLog("修改失败", err)
+	}
+	return self, nil
+}

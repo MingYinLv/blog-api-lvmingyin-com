@@ -7,18 +7,13 @@ func (LinkDao) Insert(sql string, self interface{}, params ...interface{}) (inte
 	if err != nil {
 		return DBErrorLog("添加失败", err)
 	}
-	link := self.(Link)
+	link := self.(*Link)
 	link.ID = id
 	return link, nil
 }
 
 func (LinkDao) Update(sql string, self interface{}, params ...interface{}) (interface{}, error) {
-	_, err := ExecUpdate(sql, params...)
-
-	if err != nil {
-		return DBErrorLog("修改失败", err)
-	}
-	return self, nil
+	return UpdateReturnByGraphql(sql, self, params...)
 }
 
 func (LinkDao) Delete(sql string, params ...interface{}) (int64, error) {
@@ -33,10 +28,6 @@ func (LinkDao) QueryRow(sql string, params ...interface{}) (interface{}, error) 
 	var id, linkType int64
 	var icon, url, name string
 	err = row.Scan(&id, &icon, &linkType, &url, &name)
-	if err != nil {
-		return DBErrorLog("链接不存在", err)
-	}
-
 	if err != nil {
 		return DBErrorLog("链接不存在", err)
 	}

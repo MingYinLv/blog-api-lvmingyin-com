@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/util"
+	"blog-api-lvmingyin-com/db"
 	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
@@ -65,42 +65,81 @@ var DeleteTagMutation = &graphql.Field{
 	},
 }
 
-func AddTag(tag *Tag) (*Tag, error) {
+func AddTag(tag *Tag) (interface{}, error) {
 	_, err := FindTagByName(tag.TagName)
 	if err == nil {
 		return &Tag{}, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
 	}
 
-	id, err := ExecInsert("INSERT INTO tags(tag_name) values(?)", tag.TagName)
+	return tagDao.Insert("INSERT INTO tags(tag_name) values(?)", tag, tag.TagName)
+}
+
+func DeleteTag(tagId int64) (int64, error) {
+	tx, err := db.DB.Begin()
 	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签创建失败")
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
 	}
-	tag.ID = id
-	return tag, nil
 
+	stms, err := tx.Prepare("DELETE FROM tags WHERE id = ?")
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+	defer stms.Close()
+	result, err := stms.Exec(tagId)
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+	row, err := result.RowsAffected()
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+
+	mappStmt, err := tx.Prepare("DELETE FROM actMappTag WHERE tag_id = ?")
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+
+	result, err = mappStmt.Exec(tagId)
+
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+
+	mappRow, err := result.RowsAffected()
+
+	if err != nil {
+		DBLog(err)
+		tx.Rollback()
+		return 0, errors.New("删除失败")
+	}
+
+	tx.Commit()
+	return mappRow + row, nil
 }
 
-func DeleteTag(idQuery int64) (int64, error) {
-	return ExecDelete("DELETE FROM tags WHERE id = ?", idQuery)
-}
-
-func UpdateTag(tag *Tag) (*Tag, error) {
+func UpdateTag(tag *Tag) (interface{}, error) {
 	_, err := FindTagById(tag.ID)
 	if err != nil {
-		return &Tag{}, errors.New("修改的标签不存在")
+		return nil, errors.New("修改的标签不存在")
 	}
 
 	actType, err := FindTagByName(tag.TagName)
 	if err == nil && tag.ID != actType.(Tag).ID {
 		// 能查到数据，并且id和当前修改的id不一样，不允许冲突
-		return &Tag{}, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
+		return nil, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
 	}
 
-	_, err = ExecUpdate("UPDATE tags SET tag_name = ? WHERE id = ?", tag.TagName, tag.ID)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &Tag{}, errors.New("标签修改失败")
-	}
-	return tag, nil
+	return tagDao.Update("UPDATE tags SET tag_name = ? WHERE id = ?", tag, tag.TagName, tag.ID)
 }

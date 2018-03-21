@@ -26,7 +26,7 @@ var AddLinkMutation = &graphql.Field{
 		linkType, _ := p.Args["type"].(int)
 		url, _ := p.Args["url"].(string)
 		name, _ := p.Args["name"].(string)
-		return AddLink(Link{Icon: icon, Type: int64(linkType), URL: url, Name: name})
+		return AddLink(&Link{Icon: icon, Type: int64(linkType), URL: url, Name: name})
 	},
 }
 
@@ -55,7 +55,7 @@ var UpdateLinkMutation = &graphql.Field{
 		id, _ := p.Args["id"].(int)
 		url, _ := p.Args["url"].(string)
 		name, _ := p.Args["name"].(string)
-		return UpdateLink(Link{ID: int64(id), Icon: icon, Type: int64(linkType), URL: url, Name: name})
+		return UpdateLink(&Link{ID: int64(id), Icon: icon, Type: int64(linkType), URL: url, Name: name})
 	},
 }
 
@@ -75,7 +75,7 @@ var DeleteLinkMutation = &graphql.Field{
 	},
 }
 
-func AddLink(link Link) (interface{}, error) {
+func AddLink(link *Link) (interface{}, error) {
 	return linkDao.Insert("INSERT INTO link(icon,type,url,name) values(?,?,?,?)", link, link.Icon, link.Type, link.URL, link.Name)
 
 }
@@ -84,6 +84,6 @@ func DeleteLink(linkId int64) (int64, error) {
 	return linkDao.Delete("DELETE FROM link WHERE id = ?", linkId)
 }
 
-func UpdateLink(link Link) (interface{}, error) {
+func UpdateLink(link *Link) (interface{}, error) {
 	return linkDao.Update("UPDATE link SET icon = ?, url = ?, type=?, name=? WHERE id = ?", link, link.Icon, link.URL, link.Type, link.Name, link.ID)
 }
