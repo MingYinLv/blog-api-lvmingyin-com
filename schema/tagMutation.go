@@ -18,7 +18,7 @@ var AddTagMutation = &graphql.Field{
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 		tag_name, tOK := params.Args["tag_name"].(string)
 		if !tOK || strings.TrimSpace(tag_name) == "" {
-			return ArticleType{}, errors.New("请输入标签名称")
+			return nil, errors.New("请输入标签名称")
 		}
 
 		tagType := Tag{TagName: tag_name}
@@ -41,9 +41,9 @@ var UpdateTagMutation = &graphql.Field{
 		tag_name, tOK := p.Args["tag_name"].(string)
 		id, idOK := p.Args["id"].(int)
 		if !tOK || strings.TrimSpace(tag_name) == "" {
-			return Tag{}, errors.New("请输入标签名称")
+			return nil, errors.New("请输入标签名称")
 		} else if !idOK {
-			return Tag{}, errors.New("请输入id")
+			return nil, errors.New("请输入id")
 		}
 		return UpdateTag(&Tag{int64(id), tag_name})
 	},
@@ -68,7 +68,7 @@ var DeleteTagMutation = &graphql.Field{
 func AddTag(tag *Tag) (interface{}, error) {
 	_, err := FindTagByName(tag.TagName)
 	if err == nil {
-		return &Tag{}, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
+		return nil, errors.New(fmt.Sprintf("标签 %s 已存在", tag.TagName))
 	}
 
 	return tagDao.Insert("INSERT INTO tags(tag_name) values(?)", tag, tag.TagName)
