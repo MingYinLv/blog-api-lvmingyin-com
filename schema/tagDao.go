@@ -18,7 +18,7 @@ func (TagDao) Update(sql string, self interface{}, params ...interface{}) (inter
 }
 
 func (TagDao) Delete(sql string, params ...interface{}) (int64, error) {
-	return tagDao.Delete(sql, params...)
+	return ExecDelete(sql, params...)
 }
 
 func (TagDao) QueryRow(sql string, params ...interface{}) (interface{}, error) {

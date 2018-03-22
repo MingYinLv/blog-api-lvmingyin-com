@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
-	"blog-api-lvmingyin-com/util"
 	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
@@ -38,7 +36,7 @@ var GetActTypeListQuery = &graphql.Field{
 		},
 	},
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-		typeName, nameOK := params.Args["type_name"]
+		typeName, nameOK := params.Args["type_name"].(string)
 		showMenu, menuOK := params.Args["show_menu"]
 		ids, idsOK := params.Args["ids"].([]interface{})
 		sql := "SELECT * FROM articleType WHERE 1 = 1"
@@ -57,8 +55,8 @@ var GetActTypeListQuery = &graphql.Field{
 			}
 		}
 		if nameOK {
-			sql = fmt.Sprintf("%s AND typeName = ?", sql)
-			param = append(param, typeName)
+			sql = fmt.Sprintf("%s AND typeName like ?", sql)
+			param = append(param, "%"+typeName+"%")
 		}
 		if menuOK {
 			sql = fmt.Sprintf("%s AND showMenu = ?", sql)
@@ -68,65 +66,14 @@ var GetActTypeListQuery = &graphql.Field{
 	},
 }
 
-func FindActTypeById(queryId int64) (ArticleType, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM articleType where id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return ArticleType{}, errors.New(fmt.Sprintf("获取分类信息失败"))
-	}
-
-	row := stms.QueryRow(queryId)
-	stms.Close()
-	var id, showMenu int64
-	var typeName, logo string
-	err = row.Scan(&id, &typeName, &showMenu, &logo)
-	if err != nil {
-		return ArticleType{}, errors.New(fmt.Sprintf("没有该分类"))
-	}
-	return ArticleType{id, typeName, showMenu, logo}, nil
+func FindActTypeById(queryId int64) (interface{}, error) {
+	return articleTypeDao.QueryRow("SELECT * FROM articleType where id = ?", queryId)
 }
 
-func FindActTypeByName(queryName string) (ArticleType, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM articleType where typeName = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return ArticleType{}, errors.New(fmt.Sprintf("获取分类信息失败"))
-	}
-
-	row := stms.QueryRow(queryName)
-	stms.Close()
-	var id, showMenu int64
-	var typeName, logo string
-	err = row.Scan(&id, &typeName, &showMenu, &logo)
-	if err != nil {
-		return ArticleType{}, errors.New(fmt.Sprintf("没有 %s 分类", queryName))
-	}
-	return ArticleType{id, typeName, showMenu, logo}, nil
+func FindActTypeByName(queryName string) (interface{}, error) {
+	return articleTypeDao.QueryRow("SELECT * FROM articleType where typeName = ?", queryName)
 }
 
-func FindActTypeList(sql string, args ...interface{}) ([]ArticleType, error) {
-	stms, err := db.DB.Prepare(sql)
-	var result []ArticleType
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return []ArticleType{}, errors.New(fmt.Sprintf("获取分类列表失败"))
-	}
-	defer stms.Close()
-	rows, err := stms.Query(args...)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return []ArticleType{}, errors.New(fmt.Sprintf("获取分类列表失败"))
-	}
-
-	for rows.Next() {
-		var id, showMenu int64
-		var typeName, logo string
-		err = rows.Scan(&id, &typeName, &showMenu, &logo)
-		if err != nil {
-			util.ErrorLog.Println(err)
-			return result, errors.New(fmt.Sprintf("获取分类列表失败"))
-		}
-		result = append(result, ArticleType{id, typeName, showMenu, logo})
-	}
-	return result, nil
+func FindActTypeList(sql string, args ...interface{}) (interface{}, error) {
+	return articleTypeDao.Query(sql, args...)
 }

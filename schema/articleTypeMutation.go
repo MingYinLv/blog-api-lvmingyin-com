@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
-	"blog-api-lvmingyin-com/util"
 	"errors"
 	"fmt"
 	"github.com/graphql-go/graphql"
@@ -85,79 +83,30 @@ var DeleteActTypeMutation = &graphql.Field{
 	},
 }
 
-func AddArticleType(articleType *ArticleType) (*ArticleType, error) {
+func AddArticleType(articleType *ArticleType) (interface{}, error) {
 	_, err := FindActTypeByName(articleType.TypeName)
 	if err == nil {
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
 	}
-	stms, err := db.DB.Prepare("INSERT INTO articleType(typeName,showMenu,logo) values(?,?,?)")
 
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型创建失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(articleType.TypeName, articleType.ShowMenu, articleType.Logo)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型创建失败")
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型创建失败")
-	}
-	articleType.ID = id
-	return articleType, nil
-
+	return articleTypeDao.Insert("INSERT INTO articleType(typeName,showMenu,logo) values(?,?,?)", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo)
 }
 
-func UpdateArticleType(articleType *ArticleType) (*ArticleType, error) {
+func UpdateArticleType(articleType *ArticleType) (interface{}, error) {
 	_, err := FindActTypeById(articleType.ID)
 	if err != nil {
 		return &ArticleType{}, errors.New("修改的类型不存在")
 	}
 
 	actType, err := FindActTypeByName(articleType.TypeName)
-	if err == nil && articleType.ID != actType.ID {
+	if err == nil && articleType.ID != actType.(ArticleType).ID {
 		// 能查到数据，并且id和当前修改的id不一样，不允许冲突
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
 	}
 
-	stms, err := db.DB.Prepare("UPDATE articleType SET typeName = ?,showMenu = ?,logo = ? WHERE id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型修改失败")
-	}
-	defer stms.Close()
-	result, err := stms.Exec(articleType.TypeName, articleType.ShowMenu, articleType.Logo, articleType.ID)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型修改失败")
-	}
-	_, err = result.RowsAffected()
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return &ArticleType{}, errors.New("类型修改失败")
-	}
-	return articleType, nil
+	return articleTypeDao.Update("UPDATE articleType SET typeName = ?,showMenu = ?,logo = ? WHERE id = ?", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo, articleType.ID)
 }
 
 func DeleteArticleType(idQuery int64) (int64, error) {
-	stms, err := db.DB.Prepare("DELETE FROM articleType WHERE id = ?")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("类型删除失败")
-	}
-	defer stms.Close()
-
-	result, err := stms.Exec(idQuery)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return 0, errors.New("类型删除失败")
-	}
-
-	return result.RowsAffected()
+	return articleTypeDao.Delete("DELETE FROM articleType WHERE id = ?", idQuery)
 }
