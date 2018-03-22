@@ -42,7 +42,7 @@ func (ArticleTypeDao) Query(sql string, params ...interface{}) (interface{}, err
 	defer rows.Close()
 
 	var result []ArticleType
-	if rows.Next() {
+	for rows.Next() {
 		var id, show_menu int64
 		var type_name, logo string
 		err = rows.Scan(&id, &type_name, &show_menu, &logo)

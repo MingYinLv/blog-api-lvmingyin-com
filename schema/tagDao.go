@@ -43,7 +43,7 @@ func (TagDao) Query(sql string, params ...interface{}) (interface{}, error) {
 	defer rows.Close()
 
 	var result []Tag
-	if rows.Next() {
+	for rows.Next() {
 		var id int64
 		var tag_name string
 		err = rows.Scan(&id, &tag_name)

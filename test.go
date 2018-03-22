@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 )
 
 func main() {
-	fmt.Printf("%s AND name like %s\n", "hhh", "%?%")
+	i := 1
+	fmt.Println(reflect.TypeOf(i))
 }

@@ -14,6 +14,10 @@ func DBLog(err error) {
 	util.ErrorLog.Println(err)
 }
 
+func DBNewTextError(text string) error {
+	return errors.New(text)
+}
+
 func DBError(text string) (interface{}, error) {
-	return nil, errors.New(text)
+	return nil, DBNewTextError(text)
 }

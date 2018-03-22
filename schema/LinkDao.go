@@ -42,7 +42,7 @@ func (LinkDao) Query(sql string, params ...interface{}) (interface{}, error) {
 	defer rows.Close()
 
 	var result []Link
-	if rows.Next() {
+	for rows.Next() {
 		var id, linkType int64
 		var icon, url, name string
 		err = rows.Scan(&id, &icon, &linkType, &url, &name)
