@@ -31,7 +31,7 @@ var GetTagsQuery = &graphql.Field{
 		if !sOK {
 			size = 10
 		}
-		return FindTags(&ids, page, size)
+		return FindTags(ids, page, size)
 
 	},
 }
@@ -62,7 +62,7 @@ func FindTagsByActId(actId int64) (interface{}, error) {
 	return tagDao.Query("SELECT tags.id,tags.tag_name from actMappTag right join tags on tags.id = actMappTag.tag_id where actMappTag.act_id = ?", actId)
 }
 
-func FindTags(ids *[]interface{}, page, size int) (ListResult, error) {
+func FindTags(ids []interface{}, page, size int) (ListResult, error) {
 	sql := util.GenInKeys("tags", "id", ids, page, size)
 	stms, err := db.DB.Prepare(sql)
 	if err != nil {
@@ -71,7 +71,7 @@ func FindTags(ids *[]interface{}, page, size int) (ListResult, error) {
 	}
 	defer stms.Close()
 
-	rows, err := stms.Query(*ids...)
+	rows, err := stms.Query(ids...)
 
 	if err != nil {
 		util.ErrorLog.Println(err)

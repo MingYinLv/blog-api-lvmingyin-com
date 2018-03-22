@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var GetLinks = &graphql.Field{
+var GetLinksQuery = &graphql.Field{
 	Type: graphql.NewList(LinkType),
 	Args: graphql.FieldConfigArgument{
 		"type": &graphql.ArgumentConfig{
@@ -24,7 +24,7 @@ var GetLinks = &graphql.Field{
 	},
 }
 
-var GetLink = &graphql.Field{
+var GetLinkQuery = &graphql.Field{
 	Type: LinkType,
 	Args: graphql.FieldConfigArgument{
 		"id": &graphql.ArgumentConfig{

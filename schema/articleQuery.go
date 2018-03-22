@@ -5,7 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-var GetArticles = &graphql.Field{
+var GetArticlesQuery = &graphql.Field{
 	Type: ActListType,
 	Args: graphql.FieldConfigArgument{
 		"ids": &graphql.ArgumentConfig{
@@ -28,7 +28,7 @@ var GetArticles = &graphql.Field{
 		if !sOK {
 			size = 10
 		}
-		return FindArticles(&ids, page, size)
+		return FindArticles(ids, page, size)
 	},
 }
 
@@ -50,18 +50,22 @@ func FindArticleById(queryId int64) (interface{}, error) {
 }
 
 func FindArticleListByTagId(queryId int64) (interface{}, error) {
-	return articleDao.Query("SELECT article.id,article.title,article.content,article.cover,article.type_id,article.create_at,article.update_at FROM`article`INNER JOIN actMappTag ON article.id=actMappTag.act_id INNER JOIN tags ON actMappTag.tag_id=tags.id WHERE tags.id=? GROUP BY article.id", queryId)
+	return articleDao.Query("SELECT article.id,article.title,article.content,article.cover,article.type_id,article.create_at,article.update_at FROM`article`INNER JOIN actMappTag ON article.id=actMappTag.act_id INNER JOIN tags ON actMappTag.tag_id=tags.id WHERE tags.id=?", queryId)
 }
 
-func FindArticles(ids *[]interface{}, page, size int) (interface{}, error) {
+func FindArticlesBySpecialId(speId int64) (interface{}, error) {
+	return articleDao.Query("SELECT article.id,article.title,article.content,article.cover,article.type_id,article.create_at,article.update_at FROM`special`INNER JOIN speMappAct ON special.id=speMappAct.spe_id INNER JOIN article ON speMappAct.act_id=special.id WHERE special.id=?", speId)
+}
+
+func FindArticles(ids []interface{}, page, size int) (interface{}, error) {
 	sql := util.GenInKeys("article", "id", ids, page, size)
-	r, err := articleDao.Query(sql, *ids...)
+	r, err := articleDao.Query(sql, ids...)
 	if err != nil {
 		return DBErrorLog("获取文章列表失败", err)
 	}
 	result := r.([]Article)
 
-	row,err := QueryRow("SELECT count(id) FROM article")
+	row, err := QueryRow("SELECT count(id) FROM article")
 	if err != nil {
 		return DBErrorLog("获取文章列表失败", err)
 	}

@@ -12,9 +12,11 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"article":         GetArticleByIdQuery,
 		"tag":             GetTagByIdQuery,
 		"tags":            GetTagsQuery,
-		"articles":        GetArticles,
-		"links":           GetLinks,
-		"link":            GetLink,
+		"articles":        GetArticlesQuery,
+		"links":           GetLinksQuery,
+		"link":            GetLinkQuery,
+		"special":         GetSpecialByIdQuery,
+		"specials":        GetSpecialsQuery,
 	},
 })
 
