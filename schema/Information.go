@@ -1,10 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
-	"blog-api-lvmingyin-com/util"
-	"errors"
-	"fmt"
 	"github.com/graphql-go/graphql"
 	"reflect"
 	"strings"
@@ -145,40 +141,25 @@ var InformationMutation = &graphql.Field{
 	},
 }
 
-func GetInformation() (Information, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM information order by id desc limit 0,1")
+func GetInformation() (interface{}, error) {
+	row, err := QueryRow("SELECT * FROM information order by id desc limit 0,1")
 	if err != nil {
-		util.ErrorLog.Println(err)
-		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
+		return DBErrorLog("获取网站信息失败", err)
 	}
-	defer stms.Close()
 
-	row := stms.QueryRow()
 	var id int64
 	var title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp string
 	err = row.Scan(&id, &title, &description, &icon, &subtitle, &realname, &logo, &email, &qq, &telephone, &copyright, &icp)
 	if err != nil {
-		return Information{}, errors.New(fmt.Sprintf("获取网站信息失败"))
+		return DBErrorLog("获取网站信息失败", err)
 	}
 	return Information{id, title, description, icon, subtitle, realname, logo, email, qq, telephone, copyright, icp}, nil
 }
 
-func UpdateInformation(information Information) (Information, error) {
-	stms, err := db.DB.Prepare("update information set title=?,logo=?,realname=?,subtitle=?,qq=?,icp=?,email=?,telephone=?,copyright=?,description=?,icon=? where id=?")
+func UpdateInformation(information Information) (interface{}, error) {
+	_, err := ExecUpdate("update information set title=?,logo=?,realname=?,subtitle=?,qq=?,icp=?,email=?,telephone=?,copyright=?,description=?,icon=? where id=?", information.Title, information.Logo, information.RealName, information.Subtitle, information.QQ, information.ICP, information.Email, information.Telephone, information.Copyright, information.Description, information.Icon, information.ID)
 	if err != nil {
-		util.ErrorLog.Println(err)
-		return Information{}, errors.New("修改失败")
-	}
-	defer stms.Close()
-	result, err := stms.Exec(information.Title, information.Logo, information.RealName, information.Subtitle, information.QQ, information.ICP, information.Email, information.Telephone, information.Copyright, information.Description, information.Icon, information.ID)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return Information{}, errors.New("修改失败")
-	}
-	_, err = result.RowsAffected()
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return Information{}, errors.New("类型修改失败")
+		return DBErrorLog("类型修改失败", err)
 	}
 	return information, nil
 }

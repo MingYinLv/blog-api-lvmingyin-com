@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"blog-api-lvmingyin-com/db"
 	"blog-api-lvmingyin-com/util"
 	"errors"
 	"fmt"
@@ -75,67 +74,54 @@ var AdminCreateMutation = &graphql.Field{
 	},
 }
 
-func FindAdminByUserName(username string) (Admin, error) {
-	stms, err := db.DB.Prepare("SELECT * FROM admin WHERE username = ?")
+func FindAdminByUserName(username string) (interface{}, error) {
+	row, err := QueryRow("SELECT * FROM admin WHERE username = ?", username)
 	if err != nil {
-		util.ErrorLog.Println(err)
-		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
+		return DBErrorLog(fmt.Sprintf("用户 %s 不存在", username), err)
 	}
-	defer stms.Close()
 
-	row := stms.QueryRow(username)
 	var id int64
 	var userResult, pwdResult, salt string
 	err = row.Scan(&id, &userResult, &pwdResult, &salt)
 	if err != nil {
-		return Admin{}, errors.New(fmt.Sprintf("用户 %s 不存在", username))
+		return DBErrorLog(fmt.Sprintf("用户 %s 不存在", username), err)
 	}
 	return Admin{id, userResult, pwdResult, salt}, nil
 }
 
-func AdminLogin(username, password string) (Admin, error) {
-	admin, err := FindAdminByUserName(username)
+func AdminLogin(username, password string) (interface{}, error) {
+	a, err := FindAdminByUserName(username)
 	if err != nil {
 		// 其他错误
-		return admin, err
+		return DBError("登录失败")
 	}
+
+	admin := a.(Admin)
 
 	if admin.Password == util.GetSha256Password(password, admin.Salt) {
 		// 密码加密有一致
 		return Admin{ID: admin.ID, Username: admin.Username}, nil
 	} else {
 		// 密码错误
-		return Admin{}, errors.New("密码错误")
+		return DBError("密码错误")
 	}
 
 }
 
-func AdminCreate(username, password string) (Admin, error) {
+func AdminCreate(username, password string) (interface{}, error) {
 
 	admin, err := FindAdminByUserName(username)
-	if err == nil && admin.ID > 0 {
-		return Admin{}, errors.New("该用户名已注册")
+	if err == nil && admin.(Admin).ID > 0 {
+		return DBError("该用户名已注册")
 	}
-
-	stms, err := db.DB.Prepare("INSERT INTO admin(username,password,salt) values(?,?,?)")
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return Admin{}, errors.New("用户创建失败")
-	}
-	defer stms.Close()
 
 	salt := util.GetRandomString()
 	pwd := util.GetSha256Password(password, salt)
-	result, err := stms.Exec(username, pwd, salt)
-	if err != nil {
-		util.ErrorLog.Println(err)
-		return Admin{}, errors.New("用户创建失败")
-	}
 
-	id, err := result.LastInsertId()
+	id, err := ExecInsert("INSERT INTO admin(username,password,salt) values(?,?,?)", username, pwd, salt)
+
 	if err != nil {
-		util.ErrorLog.Println(err)
-		return Admin{}, errors.New("用户创建失败")
+		return DBErrorLog("用户创建失败", err)
 	}
 	return Admin{ID: id, Username: username}, nil
 }
