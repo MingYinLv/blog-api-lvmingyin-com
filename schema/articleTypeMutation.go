@@ -89,7 +89,7 @@ func AddArticleType(articleType *ArticleType) (interface{}, error) {
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
 	}
 
-	return articleTypeDao.Insert("INSERT INTO articleType(typeName,showMenu,logo) values(?,?,?)", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo)
+	return articleTypeDao.Insert("INSERT INTO articleType(type_name,show_menu,logo) values(?,?,?)", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo)
 }
 
 func UpdateArticleType(articleType *ArticleType) (interface{}, error) {
@@ -104,7 +104,7 @@ func UpdateArticleType(articleType *ArticleType) (interface{}, error) {
 		return &ArticleType{}, errors.New(fmt.Sprintf("类型 %s 已存在", articleType.TypeName))
 	}
 
-	return articleTypeDao.Update("UPDATE articleType SET typeName = ?,showMenu = ?,logo = ? WHERE id = ?", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo, articleType.ID)
+	return articleTypeDao.Update("UPDATE articleType SET type_name = ?,show_menu = ?,logo = ? WHERE id = ?", articleType, articleType.TypeName, articleType.ShowMenu, articleType.Logo, articleType.ID)
 }
 
 func DeleteArticleType(idQuery int64) (int64, error) {

@@ -55,11 +55,11 @@ var GetActTypeListQuery = &graphql.Field{
 			}
 		}
 		if nameOK {
-			sql = fmt.Sprintf("%s AND typeName like ?", sql)
+			sql = fmt.Sprintf("%s AND type_name like ?", sql)
 			param = append(param, "%"+typeName+"%")
 		}
 		if menuOK {
-			sql = fmt.Sprintf("%s AND showMenu = ?", sql)
+			sql = fmt.Sprintf("%s AND show_menu = ?", sql)
 			param = append(param, showMenu)
 		}
 		return FindActTypeList(sql, param...)
@@ -71,7 +71,7 @@ func FindActTypeById(queryId int64) (interface{}, error) {
 }
 
 func FindActTypeByName(queryName string) (interface{}, error) {
-	return articleTypeDao.QueryRow("SELECT * FROM articleType where typeName = ?", queryName)
+	return articleTypeDao.QueryRow("SELECT * FROM articleType where type_name = ?", queryName)
 }
 
 func FindActTypeList(sql string, args ...interface{}) (interface{}, error) {

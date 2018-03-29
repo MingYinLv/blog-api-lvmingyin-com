@@ -37,6 +37,10 @@ var mutation = graphql.NewObject(graphql.ObjectConfig{
 		"addLink":           AddLinkMutation,
 		"updateLink":        UpdateLinkMutation,
 		"deleteLink":        DeleteLinkMutation,
+		"addSpecial":        AddSpecialMutation,
+		"deleteSpecial":     DeleteSpecialMutation,
+		"updateSpecial":     UpdateSpecialMutation,
+		"deleteSpecialActs": DeleteSpecialActsMutation,
 	},
 })
 

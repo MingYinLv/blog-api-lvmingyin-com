@@ -50,6 +50,10 @@ var GetSpecialsQuery = &graphql.Field{
 	},
 }
 
+func FindSpecialByName(speName string)(interface{}, error){
+	return specialDao.QueryRow("SELECT * FROM special WHERE special_name = ?", speName)
+}
+
 func FindSpecialById(speId int64) (interface{}, error) {
 	return specialDao.QueryRow("SELECT * FROM special WHERE id = ?", speId)
 }
@@ -59,8 +63,8 @@ func FindSpecials(special Special, page, size int64) (interface{}, error) {
 	countSql := "SELECT COUNT(*) FROM special"
 	var params []interface{}
 	if strings.TrimSpace(special.SpecialName) != "" {
-		sql = fmt.Sprintf("%s WHERE specialName like ?", sql)
-		countSql = fmt.Sprintf("%s WHERE specialName like ?", countSql)
+		sql = fmt.Sprintf("%s WHERE special_name like ?", sql)
+		countSql = fmt.Sprintf("%s WHERE special_name like ?", countSql)
 		params = append(params, "%"+special.SpecialName+"%")
 	}
 
