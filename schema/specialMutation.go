@@ -9,7 +9,7 @@ import (
 )
 
 var AddSpecialMutation = &graphql.Field{
-	Type: TagType,
+	Type: SpecialType,
 	Args: graphql.FieldConfigArgument{
 		"special_name": &graphql.ArgumentConfig{
 			Type: graphql.String,
@@ -32,7 +32,7 @@ var AddSpecialMutation = &graphql.Field{
 }
 
 var UpdateSpecialMutation = &graphql.Field{
-	Type: TagType,
+	Type: SpecialType,
 	Args: graphql.FieldConfigArgument{
 		"id": &graphql.ArgumentConfig{
 			Type: graphql.Int,
@@ -90,12 +90,12 @@ var DeleteSpecialActsMutation = &graphql.Field{
 }
 
 func AddSpecial(special *Special) (interface{}, error) {
-	_, err := FindTagByName(special.SpecialName)
+	sp, err := FindSpecialByName(special.SpecialName)
 	if err == nil {
 		return nil, errors.New(fmt.Sprintf("专题 %s 已存在", special.SpecialName))
 	}
 
-	return tagDao.Insert("INSERT INTO special(special_name, cover) values(?)", special, special.SpecialName, special.Cover)
+	return specialDao.Insert("INSERT INTO special(special_name, cover) values(?, ?)", special, special.SpecialName, special.Cover)
 }
 
 func UpdateSpecial(special *Special) (interface{}, error) {
