@@ -90,7 +90,7 @@ var DeleteSpecialActsMutation = &graphql.Field{
 }
 
 func AddSpecial(special *Special) (interface{}, error) {
-	sp, err := FindSpecialByName(special.SpecialName)
+	_, err := FindSpecialByName(special.SpecialName)
 	if err == nil {
 		return nil, errors.New(fmt.Sprintf("专题 %s 已存在", special.SpecialName))
 	}
