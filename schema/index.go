@@ -13,6 +13,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"tag":             GetTagByIdQuery,
 		"tags":            GetTagsQuery,
 		"articles":        GetArticlesQuery,
+		"articlesByType":  GetArticleByTypeIdQuery,
 		"links":           GetLinksQuery,
 		"link":            GetLinkQuery,
 		"special":         GetSpecialByIdQuery,
