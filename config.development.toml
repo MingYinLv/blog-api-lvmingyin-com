@@ -1,5 +1,5 @@
 
-ListenPort = 3000
+ListenPort = 8888
 ClearLog = true
 
 [Mysql]
